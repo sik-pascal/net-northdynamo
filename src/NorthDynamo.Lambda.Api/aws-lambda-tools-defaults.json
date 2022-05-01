@@ -1,0 +1,7 @@
+{
+  "Information": ["Common config"],
+  "profile": "default",
+  "region": "eu-west-1",
+  "configuration": "Release",
+  "s3-prefix": "net-northdynamo-lambda/"
+}
