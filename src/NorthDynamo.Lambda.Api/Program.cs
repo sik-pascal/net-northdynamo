@@ -16,16 +16,17 @@ container.AddAWSService<IAmazonDynamoDB>();
 container.AddSingleton<IDynamoDBContext>(_ => new DynamoDBContext(_.GetService<IAmazonDynamoDB>()));
 container.AddScoped<ICustomerRepository, CustomerRepository>();
 
-container.AddHttpClient<INorthwindDao<CustomerDto>, NorthwindDao>(
-    NorthwindDao.Config(settings)
-);
+container.AddHttpClient<INorthwindDao<CustomerDto>, NorthwindDao>()
+    .ConfigureHttpClient(NorthwindDao.Config(settings));
+
+container.AddControllers();
 
 builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
 
 var app = builder.Build();
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
+// app.UseAuthorization();
 app.MapControllers();
 
 app.UseExceptionHandler("/exception");

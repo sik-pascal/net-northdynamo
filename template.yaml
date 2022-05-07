@@ -1,7 +1,7 @@
 ﻿AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: An AWS SAM app running ASP.NET minimal API to manipulate northwind DB.
-Paramenters:
+Parameters:
   Environment:
     Type: String
     Default: production
@@ -25,31 +25,86 @@ Resources:
   NorthdynamoApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: 'NorthDynamo.Lambda.Api'
+      Handler: "NorthDynamo.Lambda.Api"
       Runtime: dotnet6
-      CodeUri: './src/NorthDynamo.Lambda.Api/'
+      CodeUri: "./src/NorthDynamo.Lambda.Api/"
       MemorySize: 512
       Tracing: Active
       Policies:
-        - AWSLambda_FullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NorthdynamoTable
       Environment:
         Variables:
           DOTNET_ENVIRONMENT: !Ref Environment
-          NORTHWINDDAOBASEURL: 'https://demodata.grapecity.com/northwind/api/v1'
-          NORTHWINDDAOTIMEOUTMS: 5000
+          NORTHWINDDAOBASEURL: "https://demodata.grapecity.com/northwind/api/v1"
+          NORTHWINDDAOTIMEOUTMS: "5000"
       Events:
         ProxyResource:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessApi
             Path: "/{proxy+}"
             Method: ANY
         RootResource:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessApi
             Path: "/"
             Method: ANY
+
+  NorthdynamoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: northdynamo-data
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: active
+          AttributeType: N
+        - AttributeName: stage
+          AttributeType: S
+        - AttributeName: category
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+      LocalSecondaryIndexes:
+        - IndexName: pk-active-index
+          KeySchema:
+            - AttributeName: pk
+              KeyType: HASH
+            - AttributeName: active
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+        - IndexName: pk-stage-index
+          KeySchema:
+            - AttributeName: pk
+              KeyType: HASH
+            - AttributeName: stage
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+      GlobalSecondaryIndexes:
+        - IndexName: category-active-index
+          KeySchema:
+            - AttributeName: category
+              KeyType: HASH
+            - AttributeName: active
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
 Outputs:
   ApiURL:
     Description: API endpoint URL for Prod environment
     Value:
-      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/api/
+      Fn::Sub: https://${ServerlessApi}.execute-api.${AWS::Region}.amazonaws.com/api/

@@ -44,6 +44,8 @@ Generated\ Files/
 [Bb]uild[Ll]og.*
 
 .idea/
+.aws-sam/
+.vscode/
 
 # NUnit
 *.VisualState.xml
