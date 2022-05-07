@@ -4,7 +4,9 @@
     "NorthDynamo.Lambda.Api": {
       "commandName": "Project",
       "environmentVariables": {
-        "DOTNET_ENVIRONMENT": "Development"
+        "DOTNET_ENVIRONMENT": "Development",
+        "NORTHWINDDAOBASEURL": "https://demodata.grapecity.com/northwind/api/v1/",
+        "NORTHWINDDAOTIMEOUTMS": "5000"
       }
     }
   }
