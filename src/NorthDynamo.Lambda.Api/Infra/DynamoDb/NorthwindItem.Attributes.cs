@@ -38,16 +38,4 @@ public partial class NorthwindItem
     {
         public const string CategoryByActive = $"{Att.Category}-{Att.Active}-index";
     }
-
-    public static T[] Values<T>(params T[] items) => items;
-
-    public static string GetUuid() => Guid.NewGuid().ToString("D");
-
-    public static long GetTimestamp() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-    public static string GetCustomerPk(string customerId) => $"{Pfx.Customer}#{customerId}";
-
-    public static string GetCustomerSk(string customerId) => $"{Pfx.Customer}#{customerId}";
-
-    public static string GetCustomerAddressSk(string customerId) => $"{Pfx.Customer}#{customerId}";
 }

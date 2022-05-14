@@ -21,30 +21,29 @@ public class CustomerRepository : ICustomerRepository
     }
 
     public IAsyncEnumerable<dynamic> FindCustomers() => Resolve(
-        _context.FromQueryAsync<NorthwindItem>(new QueryOperationConfig
-        {
+        _context.FromQueryAsync<NorthwindItem>(new QueryOperationConfig {
             IndexName = Idx.CategoryByActive,
             Filter = new QueryFilter()
-                .With(q => q.AddCondition(Att.Category, QueryOperator.Equal, "customer"))
+                .With(q => q.AddCondition(Att.Category, QueryOperator.Equal, Pfx.Customer))
                 .With(q => q.AddCondition(Att.Active, QueryOperator.Equal, true))
         })
     );
 
     async Task<dynamic> ICustomerRepository.FindCustomer(string customerId) =>
         await _context.LoadAsync<NorthwindItem>(
-            GetCustomerPk(customerId),
-            GetCustomerSk(customerId)
+            GetPk(customerId),
+            GetSk(customerId)
         );
 
     IAsyncEnumerable<dynamic> ICustomerRepository.FindCustomerOrders(string customerId) => Resolve(
         _context.QueryAsync<NorthwindItem>(
-            GetCustomerPk(customerId), QueryOperator.BeginsWith, Values(Pfx.Order)
+            GetPk(customerId), QueryOperator.BeginsWith, Arr(Pfx.Order)
         )
     );
 
     IAsyncEnumerable<dynamic> ICustomerRepository.FindCustomerAddress(string customerId) => Resolve(
         _context.QueryAsync<NorthwindItem>(
-            GetCustomerPk(customerId), QueryOperator.BeginsWith, Values(Pfx.Address)
+            GetPk(customerId), QueryOperator.BeginsWith, Arr(Pfx.Address)
         )
     );
 
@@ -53,10 +52,9 @@ public class CustomerRepository : ICustomerRepository
         var customers = await dao.Fetch();
         var items = customers
             .Where(cu => !string.IsNullOrEmpty(cu.CustomerId))
-            .Select((cu, i) => new NorthwindItem
-            {
-                Pk = GetCustomerPk(cu.CustomerId!),
-                Sk = GetCustomerSk(cu.CustomerId!),
+            .Select((cu, i) => new NorthwindItem {
+                Pk = GetPk(cu.CustomerId!),
+                Sk = GetSk(cu.CustomerId!),
                 Id = cu.CustomerId,
                 CustomerId = cu.CustomerId,
                 Name = cu.ContactName,
@@ -75,14 +73,14 @@ public class CustomerRepository : ICustomerRepository
                     _ => true
                 }, //test data
                 Closed = i % 2 == 0,
-                Category = "customer",
+                Category = Pfx.Customer,
                 CreatedAt = GetTimestamp(),
-            }).ToArray();
+            });
 
         var batch = _context.CreateBatchWrite<NorthwindItem>(IgnoreNullConfig);
         batch.AddPutItems(items);
         await batch.ExecuteAsync();
 
-        return items.Length;
+        return items.Count();
     }
 }

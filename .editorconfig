@@ -38,3 +38,6 @@ trim_trailing_whitespace = false
 [*.{htm,html,js,jsm,ts,tsx,cjs,cts,ctsx,mjs,mts,mtsx,css,sass,scss,less,pcss,svg,vue}]
 indent_size = 2
 
+[*.cs]
+csharp_new_line_before_open_brace = methods, properties, control_blocks, types
+
