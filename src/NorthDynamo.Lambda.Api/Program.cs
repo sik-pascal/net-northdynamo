@@ -11,23 +11,23 @@ var builder = WebApplication.CreateBuilder(args);
 var settings = builder.Configuration.Get<ProgramSettings>();
 var container = builder.Services;
 
+container.AddEndpointsApiExplorer();
+container.AddSwaggerGen();
+
 container.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 container.AddAWSService<IAmazonDynamoDB>();
 container.AddSingleton<IDynamoDBContext>(_ => new DynamoDBContext(_.GetService<IAmazonDynamoDB>()));
+
 container.AddScoped<ICustomerRepository, CustomerRepository>();
+container.AddHttpClient<INorthwindDao<CustomerDto>, NorthwindDao>(NorthwindDao.Config(settings));
 
-container.AddHttpClient<INorthwindDao<CustomerDto>, NorthwindDao>()
-    .ConfigureHttpClient(NorthwindDao.Config(settings));
-
-container.AddControllers();
-
-builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
+container.AddAWSLambdaHosting(LambdaEventSource.RestApi);
 
 var app = builder.Build();
 
 app.UseHttpsRedirection();
 // app.UseAuthorization();
-app.MapControllers();
+// app.MapControllers();
 
 app.UseExceptionHandler("/exception");
 
@@ -39,6 +39,9 @@ app.Map("/exception", (HttpContext ctx) => {
         statusCode: StatusCodes.Status500InternalServerError
     );
 });
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.MapPut("/customers/sync", async (INorthwindDao<CustomerDto> dao, ICustomerRepository repo) => {
     var result = await repo.Sync(dao);
